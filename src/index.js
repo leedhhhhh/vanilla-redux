@@ -11,20 +11,6 @@ const ul = document.querySelector("ul");
 const ADD_TODO = "ADD_TODO";
 const DELETE_TODO = "DELETE_TODO";
 
-const addToDo = (text) => {
-  return {
-    type: ADD_TODO,
-    text,
-  };
-};
-
-const deleteToDo = (id) => {
-  return {
-    type: DELETE_TODO,
-    id,
-  };
-};
-
 const reducer = (state = [], action) => {
   switch (action.type) {
     case ADD_TODO:
@@ -58,6 +44,20 @@ const paintToDos = () => {
 };
 
 store.subscribe(paintToDos);
+
+const addToDo = (text) => {
+  return {
+    type: ADD_TODO,
+    text,
+  };
+};
+
+const deleteToDo = (id) => {
+  return {
+    type: DELETE_TODO,
+    id,
+  };
+};
 
 const dispatchAddToDo = (text) => {
   store.dispatch(addToDo(text));
