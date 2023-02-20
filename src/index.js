@@ -1,30 +1,78 @@
 import { legacy_createStore } from "redux";
-const add = document.getElementById("add");
-const minus = document.getElementById("minus");
-const number = document.querySelector("span");
 
-// store : data(state)를 넣는곳 , data 넣기위한 장소 생성
-// reducer는 function 이며 data를 수정하는곳
-const countModifier = (count = 0, action) => {
-  if (action.type === "ADD") {
-    return count + 1;
-  } else if (action.type === "MINUS") {
-    return count - 1;
+// action : reducer와 소통하는 방법, Object 여야하며 그 key 이름은 항상 type
+// dispatch : reducer에게 action을 보내는 방법
+// subscribe : store의 변화를 감지하면 인자값으로 준 함수를 실행함
+
+const form = document.querySelector("form");
+const input = document.querySelector("input");
+const ul = document.querySelector("ul");
+
+const ADD_TODO = "ADD_TODO";
+const DELETE_TODO = "DELETE_TODO";
+
+const addToDo = (text) => {
+  return {
+    type: ADD_TODO,
+    text,
+  };
+};
+
+const deleteToDo = (id) => {
+  return {
+    type: DELETE_TODO,
+    id,
+  };
+};
+
+const reducer = (state = [], action) => {
+  switch (action.type) {
+    case ADD_TODO:
+      // state를 변형시키는것 금지 새로운 state를 return
+      return [{ text: action.text, id: Date.now() }, ...state];
+    case DELETE_TODO:
+      // state 변형금지 (not mutate)
+      return state.filter((toDo) => toDo.id !== action.id);
+    default:
+      return state;
   }
-  return count;
 };
 
-// data 저장하는곳
-const countStore = legacy_createStore(countModifier);
+const store = legacy_createStore(reducer);
 
-// dispatch를 통해 action을 전달할수 있음
-add.addEventListener("click", () => countStore.dispatch({ type: "ADD" }));
-minus.addEventListener("click", () => countStore.dispatch({ type: "MINUS" }));
+store.subscribe(() => console.log(store.getState()));
 
-const onChange = () => {
-  number.innerText = countStore.getState();
-  console.log(countStore.getState());
+const paintToDos = () => {
+  const toDos = store.getState();
+  ul.innerHTML = "";
+  toDos.forEach((toDo) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.innerText = "DEL";
+    btn.addEventListener("click", dispatchDeleteToDo);
+    li.id = toDo.id;
+    li.innerText = toDo.text;
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
 };
 
-// subscribe : store 안에 있는 변화를 알 수 있게 해줌
-countStore.subscribe(onChange);
+store.subscribe(paintToDos);
+
+const dispatchAddToDo = (text) => {
+  store.dispatch(addToDo(text));
+};
+
+const dispatchDeleteToDo = (event) => {
+  const id = parseInt(event.target.parentNode.id);
+  store.dispatch(deleteToDo(id));
+};
+
+const onSubmit = (e) => {
+  e.preventDefault();
+  const toDo = input.value;
+  input.value = "";
+  dispatchAddToDo(toDo);
+};
+
+form.addEventListener("submit", onSubmit);
